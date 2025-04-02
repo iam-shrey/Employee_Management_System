@@ -36,8 +36,7 @@ const AdminTemplateEditor = () => {
         apiClient
             .get(`/admin/templates/${id}`)
             .then((response) => {
-                setTemplateData(response.data); // Update the state with fetched data
-                console.log("Fetched template data:", response.data); // Log the response data
+                setTemplateData(response.data);
             })
             .catch((error) => {
                 console.error("Error fetching template data:", error); // Handle any errors

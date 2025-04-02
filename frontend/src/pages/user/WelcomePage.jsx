@@ -1,8 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../../api/apiClient";
+import { useAuth } from "../../security/AuthContext";
 
 function WelcomePage() {
+
+  const authContext = useAuth();
 
   const handleDownloadOfferLetter = async () => {
     try {
@@ -23,7 +26,7 @@ function WelcomePage() {
       // Create a temporary link element
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = 'Offer_Letter_' + userObject.firstName + '.pdf'; // Set the file name and extension here
+      link.download = 'Offer_Letter_' + authContext.firstName + '.pdf'; // Set the file name and extension here
   
       // Append link to the body and trigger click to start the download
       document.body.appendChild(link);
@@ -39,25 +42,15 @@ function WelcomePage() {
     }
   };  
 
-
-  const loggedInUser = localStorage.getItem("loggedInUserData");
-
-  let userObject = null;
-  if (loggedInUser) {
-    userObject = JSON.parse(loggedInUser);
-  } else {
-    console.log("No user found");
-  }
-
   const navigate = useNavigate();
 
   return (
-    <div className="relative bg-gray-100 w-4/5 h-[calc(100vh-68px)] justify-self-center">
+    <div className="bg-gray-100 w-4/5 justify-self-center min-h-[calc(100vh-68px)]">
 
       {/* Overlay Content */}
-      <div className="relative">
+      <div className="">
         {/* Header */}
-        <header className="bg-red-800 text-white  p-4 shadow-md">
+        <header className="bg-violet-500 text-white  p-4 shadow-md">
           <div className="container mx-auto flex items-center">
             <h1 className="text-3xl font-bold">Dashboard</h1>
           </div>
@@ -68,16 +61,16 @@ function WelcomePage() {
           {/* Welcome Section */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-6">
             <h2 className="text-3xl font-bold mb-2">
-              Welcome, {userObject?.firstName + " " + userObject?.lastName}!
+              Welcome, {authContext.firstName + " " + authContext.lastName}!
             </h2>
-            <p className="text-gray-700">Designation: {userObject.designation}</p>
-            <p className="text-gray-700">Department: {userObject.department}</p>
+            <p className="text-gray-700">Designation: {authContext.designation}</p>
+            <p className="text-gray-700">Department: {authContext.department}</p>
           </div>
 
           {/* Quick Links */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
             <div
-              onClick={() => navigate("/attendance")}
+              onClick={() => navigate(`/mark/${authContext.userId}`)}
               className="cursor-pointer bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center transform hover:scale-105 transition"
             >
               <span className="text-4xl mb-2">🕒</span>
@@ -85,7 +78,7 @@ function WelcomePage() {
             </div>
 
             <div
-              onClick={() => navigate("/view-payslip")}
+              onClick={() => navigate("/your-payrolls")}
               className="cursor-pointer bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center transform hover:scale-105 transition"
             >
               <span className="text-4xl mb-2">💰</span>
@@ -101,7 +94,7 @@ function WelcomePage() {
             </div>
 
             <div
-              onClick={() => navigate("/employees")}
+              onClick={() => navigate("/user/employees")}
               className="cursor-pointer bg-white rounded-lg shadow-lg p-6 flex flex-col items-center text-center transform hover:scale-105 transition"
             >
               <span className="text-4xl mb-2">📋</span>

@@ -51,9 +51,8 @@ const UserRegistrationForm = () => {
 
             try {
                 const response = await apiClient.post('/admin/register', user);
-                setSubmissionMessage(response.data); // Assuming backend sends success message
+                setSubmissionMessage(response.data);
                 toast.success(response.data)
-                // Clear the form fields
                 setFirstName('');
                 setLastName('');
                 setEmail('');

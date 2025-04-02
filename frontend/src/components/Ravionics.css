@@ -9,3 +9,45 @@ footer{
     width: 90%;
     height: 40px;
 }
+/* Make the navbar stick to the top */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background-color: #38bdf8;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: add a subtle shadow */
+}
+
+.main-layout {
+    display: flex;
+    justify-content:right;
+    transition: margin-left 0.3s ease;
+}
+
+.content {
+    flex: 1;
+    padding-top: 68px;
+    margin-left: 0;
+    transition: margin-left 0.3s ease;
+}
+
+.main-layout.sidebar-open .content {
+    margin-left: 320px; /* Adjust this value based on the sidebar width */
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    /* width: 250px; */
+    height: 100vh;
+    /* z-index: 1000; */
+    background-color: #f8f9fa;
+    transition: transform 0.3s ease;
+}
+
+.sidebar.closed {
+    transform: translateX(-100%);
+}

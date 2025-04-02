@@ -9,7 +9,7 @@ function EmployeeEditPage() {
     const location = useLocation();
     const [employee, setEmployee] = useState(location.state?.employee || {});
     const [loading, setLoading] = useState(false);
-    const [imagePreview, setImagePreview] = useState(location.state?.imagePreview);
+    const [imagePreview, setImagePreview] = useState(location.state?.dp);
     const [selectedFile, setSelectedFile] = useState(null);
     const [showModal, setShowModal] = useState(false);
 

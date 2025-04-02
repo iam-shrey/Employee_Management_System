@@ -6,9 +6,9 @@ import { toast } from "react-toastify";
 function EmployeeDetailPage() {
   const location = useLocation();
   const { employeeId } = useParams();
-  const [employee, setEmployee] = useState(location.state);
+  const employee = location.state?.employee || {}
+  const dp = location.state?.selectedEmployeeDp || {}
   const [experiences, setExperiences] = useState([]);
-  const [imagePreview, setImagePreview] = useState(null);
 
 
   useEffect(() => {
@@ -22,13 +22,6 @@ function EmployeeDetailPage() {
           console.error("Error fetching experiences", error);
         });
     }
-    apiClient.get(`/users/${employee.email}/dp`)
-      .then(response => {
-        setImagePreview(`data:image/jpeg;base64,${response.data}`);
-      })
-      .catch(error => {
-        console.error("Error fetching profile picture:", error);
-      });
   }, [employeeId]);
 
   if (!employee) {
@@ -59,19 +52,15 @@ function EmployeeDetailPage() {
 
   const navigate = useNavigate();
 
-  const handleEditClick = () => {
-    navigate(`/employees/${employeeId}/edit`, { state: { employee,imagePreview } });
-  };
-
 
   return (
     <div className="w-2/3 mx-auto mt-8">
       <h2 className="text-3xl font-bold mb-6 text-gray-800">Employee Details</h2>
       <div className="bg-white p-6 rounded-lg shadow-lg">
         <div className="flex flex-col items-center">
-          {imagePreview ? (
+          {dp ? (
             <img
-              src={imagePreview}
+              src={dp}
               alt="Uploaded"
               className="w-32 h-32 rounded-full object-cover border-2 border-gray-300 mb-4"
             />
@@ -151,7 +140,7 @@ function EmployeeDetailPage() {
             </Link>
           </button>
           <button
-            onClick={handleEditClick}
+            onClick={() => {navigate(`/employees/${employeeId}/edit`, { state: { employee,dp } })}}
             className="bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition"
           >
             Edit

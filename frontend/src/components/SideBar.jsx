@@ -6,8 +6,12 @@ import {
   HiInformationCircle,
   HiUserAdd,
   HiSearch,
-  HiShoppingBag,
   HiUsers,
+  HiBell,
+  HiCog,
+  HiMail,
+  HiIdentification,
+  HiDuplicate,
 } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../security/AuthContext";
@@ -16,20 +20,9 @@ function SideBar({ isOpen, setIsOpen }) {
 
   const authContext = useAuth()
   const isAuthenticated = authContext.isAuthenticated
+  const userRole = authContext.role;
+  const newUser = authContext.newUser;
 
-  let userRole = "";
-  let newUser = false;
-  const loggedInUser = localStorage.getItem("loggedInUserData");
-
-  if (loggedInUser) {
-    const userObject = JSON.parse(loggedInUser);
-
-    // Parse the string into an object
-    userRole = userObject.userRole
-    newUser = userObject.newUser
-  } else {
-    console.log("No user found");
-  }
   const handleClose = () => setIsOpen(false);
   const navigate = useNavigate();
   return (
@@ -48,19 +41,29 @@ function SideBar({ isOpen, setIsOpen }) {
                 </form>
                 <Sidebar.Items>
                   <Sidebar.ItemGroup>
-                    {userRole === 'ADMIN' ?
-                      <Sidebar.Item onClick={() => navigate("/employees")} className="cursor-pointer" icon={HiChartPie}>
-                        Dashboard
-                      </Sidebar.Item> :
-                      <Sidebar.Item onClick={() => navigate("/welcome")} className="cursor-pointer" icon={HiChartPie}>
-                        Dashboard
-                      </Sidebar.Item>}
-                    {userRole === 'ADMIN' && <Sidebar.Item onClick={() => navigate("/template")} className="cursor-pointer" icon={HiShoppingBag}>
-                      Template Editor
-                    </Sidebar.Item>}
-                    <Sidebar.Item onClick={() => navigate("/employees")} className="cursor-pointer" icon={HiUsers}>
-                      Employee list
+                    <Sidebar.Item onClick={() => navigate("/")} className="cursor-pointer" icon={HiChartPie}>
+                      Dashboard
                     </Sidebar.Item>
+                    {userRole === 'ADMIN' ? <Sidebar.Item onClick={() => navigate("/employees")} className="cursor-pointer" icon={HiUsers}>
+                      Employee list
+                    </Sidebar.Item> :
+                      <Sidebar.Item onClick={() => navigate("/user/employees")} className="cursor-pointer" icon={HiUsers}>
+                        Employee list
+                      </Sidebar.Item>}
+                    {userRole === 'ADMIN' && <Sidebar.Collapse icon={HiIdentification} label="Attendance/Leave" className="m-0">
+                      <Sidebar.Item onClick={() => navigate("/employees/attendance")} className="cursor-pointer" icon={HiCollection}>Attendance Records</Sidebar.Item>
+                      <Sidebar.Item onClick={() => navigate("/attendance/settings")} className="cursor-pointer" icon={HiCog}>Attendance Settings</Sidebar.Item>
+                      <Sidebar.Item onClick={() => navigate("/employees/leave-requests")} className="cursor-pointer" icon={HiBell}>Leave Requests</Sidebar.Item>
+                      <Sidebar.Item onClick={() => navigate("/leave-types")} className="cursor-pointer" icon={HiDuplicate}>Leave Types</Sidebar.Item>
+                      <Sidebar.Item onClick={() => navigate("/holidays")} className="cursor-pointer" icon={HiDuplicate}>Holidays</Sidebar.Item>
+                    </Sidebar.Collapse>}
+                    {userRole === 'ADMIN' && <Sidebar.Collapse icon={HiIdentification} label="Payroll Management" className="m-0">
+                      <Sidebar.Item onClick={() => navigate("/generate-payroll")} className="cursor-pointer" icon={HiCollection}>Generate Payroll</Sidebar.Item>
+                      <Sidebar.Item onClick={() => navigate("/view-payroll")} className="cursor-pointer" icon={HiCog}>View Payroll</Sidebar.Item>
+                    </Sidebar.Collapse>}
+                    {userRole === 'ADMIN' && <Sidebar.Item onClick={() => navigate("/template")} className="cursor-pointer" icon={HiMail}>
+                      Offer Template Editor
+                    </Sidebar.Item>}
                     {userRole === 'ADMIN' && <Sidebar.Item onClick={() => navigate("/register")} className="cursor-pointer" icon={HiUserAdd}>
                       Register New Employee
                     </Sidebar.Item>}

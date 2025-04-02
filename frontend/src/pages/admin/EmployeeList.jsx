@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
-import apiClient from "../api/apiClient";
-import { Button } from "flowbite-react";
-import { Link } from "react-router-dom";
+import apiClient from "../../api/apiClient";
+import { Popover } from "flowbite-react";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuth } from "../../security/AuthContext";
+import { Dropdown } from "flowbite-react";
+import { HiCog, HiCurrencyDollar, HiLogout, HiUserRemove, HiViewGrid } from "react-icons/hi";
+import '../../styles/emplist.css'
 
 function EmployeeList() {
   const [employees, setEmployees] = useState([]);
@@ -14,24 +18,18 @@ function EmployeeList() {
   const [previewOfferLetter, setPreviewOfferLetter] = useState("");
   const [isConfirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedEmployeeDp, setSelectedEmployeeDp] = useState("");
+
+  const authContext = useAuth();
+
+  const navigate = useNavigate();
 
   const [emailProcess, setEmailProcess] = useState(false);
-
-  const loggedInUser = localStorage.getItem("loggedInUserData");
-
-  let role = null
-
-  if (loggedInUser) {
-    const userObject = JSON.parse(loggedInUser);
-    role = userObject.userRole;
-  } else {
-    console.log("No user found");
-  }
 
   // Fetch Employees
   useEffect(() => {
     fetchEmployees();
-    fetchTemplateNames(); // Fetch templates when the component mounts
+    fetchTemplateNames();
   }, []);
 
   const fetchEmployees = () => {
@@ -56,6 +54,17 @@ function EmployeeList() {
       });
   };
 
+  const fetchDp = (email) => {
+    apiClient.get(`/users/${email}/dp`)
+      .then(response => {
+        setSelectedEmployeeDp(`data:image/jpeg;base64,${response.data}`);
+      })
+      .catch(error => {
+        setSelectedEmployeeDp("");
+        console.error("Error fetching profile picture:", error);
+      });
+  }
+
   const generateOfferLetterPreview = () => {
     if (selectedTemplate && selectedEmployee) {
       const url = `/admin/offer-letter/generate?templateId=${selectedTemplate}&id=${selectedEmployee.id}`;
@@ -63,9 +72,9 @@ function EmployeeList() {
         .get(url)
         .then((response) => {
           if (response.status === 200) {
-            const base64Pdf = response.data; // Base64 encoded string
-            setPreviewOfferLetter(base64Pdf); // Set the base64 string to state
-            setIsPreviewModalOpen(true); // Show the preview modal
+            const base64Pdf = response.data;
+            setPreviewOfferLetter(base64Pdf);
+            setIsPreviewModalOpen(true);
           } else {
             alert("Failed to generate offer letter preview.");
           }
@@ -86,7 +95,7 @@ function EmployeeList() {
       const url = `/admin/offer-letter/send?templateId=${selectedTemplate}&id=${selectedEmployee.id}`;
 
       apiClient
-        .post(url) // Make a POST request with query parameters in the URL
+        .post(url)
         .then((response) => {
           if (response.status === 200) {
             setEmailProcess(false)
@@ -108,16 +117,15 @@ function EmployeeList() {
 
 
   const handleSendOfferLetter = (employee) => {
-    setSelectedEmployee(employee); // Set the employee for whom the offer letter will be sent
-    setIsModalOpen(true); // Open the modal
+    setSelectedEmployee(employee);
+    setIsModalOpen(true);
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setSelectedTemplate(""); // Reset selected template
+    setSelectedTemplate("");
   };
 
-  // Correct the deleteEmployee function
   const deleteEmployee = () => {
     if (selectedEmployee) {
       apiClient
@@ -136,60 +144,115 @@ function EmployeeList() {
   };
 
   return (
-    <div className="w-11/12 mx-auto mt-8 flex-1">
+    <div className="max-w-6xl mx-auto mt-8 flex-1">
       <h2 className="text-2xl font-bold mb-4">Employee List</h2>
       <div className="max-h-[25rem] overflow-auto border">
         <table className="w-full bg-white border">
           <thead>
-            <tr className="w-full bg-gray-200">
-              {role == "ADMIN" && <th className="py-2 px-4 border text-center">ID</th>}
-              {role == "ADMIN" && <th className="py-2 px-4 border text-center">Role</th>}
-              <th className="py-2 px-4 border text-center">Name</th>
-              <th className="py-2 px-4 border text-center">Email</th>
-              <th className="py-2 px-4 border text-center">Department</th>
-              {role == "ADMIN" && <th className="py-2 px-4 border text-center">Status</th>}
-              {role == "ADMIN" && <th className="py-2 px-4 border text-center">Offer Status</th>}
-              {role == "ADMIN" && <th className="py-2 px-4 border text-center">Actions</th>}
+            <tr className="w-full bg-gray-200 text-center">
+              <th className="py-2 px-4 border">ID</th>
+              <th className="py-2 px-4 border">Role</th>
+              <th className="py-2 px-4 border">Name</th>
+              <th className="py-2 px-4 border">Email</th>
+              <th className="py-2 px-4 border">Department</th>
+              <th className="py-2 px-4 border">Status</th>
+              <th className="py-2 px-4 border">Offer Status</th>
+              <th className="py-2 px-4 border">Actions</th>
             </tr>
           </thead>
           <tbody>
             {employees.map((employee) => (
-              <tr key={employee.id} className="hover:bg-gray-100">
-                {role == "ADMIN" && <td className="py-2 px-4 border text-center">{employee.id}</td>}
-                {role == "ADMIN" && <td className="py-2 px-4 border text-center">{employee.role}</td>}
-                <td className="py-2 px-4 border text-center">
+              <tr key={employee.id} className="hover:bg-gray-100 text-center">
+                <td className="py-2 px-4 border">{employee.id}</td>
+                <td className="py-2 px-4 border">{employee.role}</td>
+                <td className="py-2 px-4 border">
                   {employee.firstName + " " + employee.lastName}
                 </td>
-                <td className="py-2 px-4 border text-center">{employee.email}</td>
-                <td className="py-2 px-4 border text-center">{employee.department}</td>
-                {role == "ADMIN" && <td className="py-2 px-4 border text-center">{employee.onboarded ? "Onboarded" : "Pending"}</td>}
-                {role == "ADMIN" && <td className="py-2 px-4 border text-center">{employee.offerLetterPdf ? "Sent" : "Pending"}</td>}
-                {role == "ADMIN" && <td className="py-2 px-4 border text-center">
-                  <button
-                    onClick={() => {
-                      setSelectedEmployee(employee);
-                      setDetailsModalOpen(true);
-                    }}
-                    className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 mr-2"
-                  >
-                    Details
-                  </button>
-                  {employee.onboarded && <button
-                    onClick={() => handleSendOfferLetter(employee)}
-                    className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mr-2"
-                  >
-                    Send Offer Letter
-                  </button>}
-                  <button
-                    onClick={() => {
+                <td className="py-2 px-4 border">{employee.email}</td>
+                <td className="py-2 px-4 border">{employee.department}</td>
+                <td className="py-2 px-4 border">{employee.onboarded ? "Onboarded" : "Pending"}</td>
+                <td className="py-2 px-4 border">{employee.offerLetterPdf ? "Sent" : "Pending"}</td>
+                <td className="py-2 px-4 border">
+                  <Dropdown label="" inline className="">
+                    <Dropdown.Header>
+                      <span className="block text-sm">{employee.firstName + " " + employee.lastName}</span>
+                      <span className="block truncate text-sm font-medium">{employee.email}</span>
+                    </Dropdown.Header>
+                    <Dropdown.Item icon={HiViewGrid} onMouseEnter={() => fetchDp(employee.email)} className="w-[90%]">
+                      <Popover
+                        trigger="hover"
+                        placement="right"
+                        aria-labelledby="profile-popover"
+                        className="cursor-default"
+                        content={
+                          <div className="bg-white p-4 rounded-md shadow-lg w-80">
+                            <div className="mb-4 flex justify-center">
+                              {selectedEmployeeDp ? (
+                                <img
+                                  src={selectedEmployeeDp}
+                                  alt="Profile Picture"
+                                  className="h-24 w-24 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
+                                  <span className="text-gray-500">No Image</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-sm text-gray-700">
+                              <p>
+                                <strong>Name:</strong> {employee.firstName} {employee.lastName}
+                              </p>
+                              <p>
+                                <strong>Email:</strong> {employee.email}
+                              </p>
+                              <p>
+                                <strong>Department:</strong> {employee.department}
+                              </p>
+                              <p>
+                                <strong>Band Level:</strong> {employee.bandLevel}
+                              </p>
+                              <p>
+                                <strong>Salary:</strong> {employee.salary}
+                              </p>
+                              <p>
+                                <strong>Phone:</strong> {employee.phoneNumber}
+                              </p>
+                              <p>
+                                <strong>Aadhar:</strong> {employee.aadharNumber}
+                              </p>
+                              <p>
+                                <strong>CGPA:</strong> {employee.cgpa}
+                              </p>
+                              <p>
+                                <strong>Graduation Year:</strong> {employee.graduationYear}
+                              </p>
+                            </div>
+                            <div className="mt-4 flex space-x-2 justify-center">
+                              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                <Link
+                                  to={`/employees/${employee.id}`}
+                                  state={{ employee, selectedEmployeeDp }}
+                                >Detail
+                                </Link>
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      >
+                        <span>Company profile</span>
+                      </Popover>
+                    </Dropdown.Item>
+
+                    <Dropdown.Item icon={HiCog} className="w-[90%]" onClick={() => { navigate(`/attendance/${employee.id}`, { state: { employee } }) }}>Attendance Record</Dropdown.Item>
+                    {employee.onboarded && <Dropdown.Item icon={HiCurrencyDollar} className="w-[90%]" onClick={() => handleSendOfferLetter(employee)}>Send Offer Letter</Dropdown.Item>}
+                    <Dropdown.Divider />
+                    <Dropdown.Item icon={HiUserRemove} className="w-[90%] text-red-600" onClick={() => {
                       setSelectedEmployee(employee);
                       setConfirmDeleteModalOpen(true);
-                    }}
-                    className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
-                  >
-                    Delete
-                  </button>
-                </td>}
+                    }}>Delete Employee</Dropdown.Item>
+                  </Dropdown>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -201,6 +264,19 @@ function EmployeeList() {
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-md shadow-lg w-96">
             <h3 className="text-xl font-bold mb-4">Employee Details</h3>
+            <div className="mb-2 flex items-center justify-center">
+              {selectedEmployeeDp ? (
+                <img
+                  src={selectedEmployeeDp}
+                  alt="Profile Picture"
+                  className="h-[7rem] w-[7rem] rounded-full"
+                />
+              ) : (
+                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center mb-4">
+                  <span className="text-gray-500">No Image Data</span>
+                </div>
+              )}
+            </div>
             <div>
               <p><strong>Name:</strong> {selectedEmployee.firstName} {selectedEmployee.lastName}</p>
               <p><strong>Email:</strong> {selectedEmployee.email}</p>
@@ -211,7 +287,7 @@ function EmployeeList() {
               <p><strong>Aadhar Number:</strong> {selectedEmployee.aadharNumber}</p>
               <p><strong>CGPA:</strong> {selectedEmployee.cgpa}</p>
               <p><strong>Graduation Year:</strong> {selectedEmployee.graduationYear}</p>
-              <Link to={`/employees/${selectedEmployee.id}`} state={selectedEmployee} className="text-blue-500"><button
+              <Link to={`/employees/${selectedEmployee.id}`} state={{ selectedEmployee, selectedEmployeeDp }} className="text-blue-500"><button
                 onClick={() => setDetailsModalOpen(false)}
                 className="mt-4 px-4 py-2 bg-gray-500 text-white rounded"
               >
